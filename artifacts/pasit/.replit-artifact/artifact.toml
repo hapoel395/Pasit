@@ -1,0 +1,27 @@
+kind = "web"
+previewPath = "/"
+title = "פאסיט"
+version = "1.0.0"
+id = "artifacts/pasit"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 25375
+
+[services.development]
+run = "pnpm --filter @workspace/pasit run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/pasit", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/pasit/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "25375"
+BASE_PATH = "/"
