@@ -107,12 +107,7 @@ const TRADE_SERVICES = {
 };
 
 
-const initialNetwork = [
-  { id: 1, name: "אבי כהן", trade: "electric", area: "פתח תקווה", phone: "050-1234567", rating: 4.9, jobsTogether: 6, verified: true, reportCount: 0, underReview: false, experience: 8, priceList: TRADE_SERVICES.electric },
-  { id: 2, name: "משה לוי", trade: "plumbing", area: "פתח תקווה", phone: "052-2345678", rating: 4.7, jobsTogether: 3, verified: true, reportCount: 0, underReview: false, experience: 5, priceList: TRADE_SERVICES.plumbing },
-  { id: 3, name: "דני שמעוני", trade: "locksmith", area: "רמת גן", phone: "054-3456789", rating: 5.0, jobsTogether: 9, verified: true, reportCount: 0, underReview: false, experience: 12, priceList: TRADE_SERVICES.locksmith },
-  { id: 4, name: "יוסי ברק", trade: "general", area: "פתח תקווה", phone: "053-4567890", rating: 4.5, jobsTogether: 1, verified: false, reportCount: 0, underReview: false, experience: 2, priceList: TRADE_SERVICES.general },
-];
+const initialNetwork = [];
 
 const initialVerifiedPool = [
   { id: 201, name: "עומר זיו", trade: "electric", area: "רמת גן", phone: "052-9876543", experience: 6, verified: true, rating: 4.8, jobsTogether: 0, priceList: TRADE_SERVICES.electric, availability: "פנוי השבוע" },
@@ -135,12 +130,7 @@ const PLATFORM_FEE_RATE = 0.10;
 
 const initialProfile = { name: "רועי דגן", trade: "doors", area: "פתח תקווה", phone: "054-1112233" };
 
-const initialReferrals = [
-  { id: "M-1042", direction: "sent", trade: "electric", pro: "אבי כהן", client: "משפחת אדרי", area: "פתח תקווה", desc: "קצר בלוח החשמל בסלון", commission: 80, status: "pending", date: "היום, 09:14", rated: false, actualAmount: null, service: null },
-  { id: "M-1041", direction: "received", trade: "doors", pro: "דני שמעוני", client: "רונית פלד", area: "רמת גן", desc: "החלפת מנעול לדלת כניסה משוריינת", commission: 60, status: "accepted", date: "אתמול, 17:40", rated: false, actualAmount: null, service: null },
-  { id: "M-1038", direction: "sent", trade: "plumbing", pro: "משה לוי", client: "ניר גבאי", area: "פתח תקווה", desc: "נזילה מתחת לכיור מטבח", commission: 50, status: "completed", date: "יום ג׳, 11:02", rated: false, actualAmount: 160, service: "תיקון נזילה" },
-  { id: "M-1035", direction: "received", trade: "general", pro: "יוסי ברק", client: "עידית מור", area: "גבעתיים", desc: "התקנת מדפים וארונית קיר", commission: 40, status: "completed", date: "שבוע שעבר", rated: true, actualAmount: 150, service: "הרכבת רהיט" },
-];
+const initialReferrals = [];
 
 function Stamp({ status }) {
   const cfg = {
@@ -182,7 +172,7 @@ function ReferralCard({ r, onOpen }) {
           <Icon size={18} color={TEXT} />
         </div>
         <div className="flex-1 min-w-0">
-          <div className="font-display font-extrabold text-sm truncate" style={{ color: TEXT }}>
+          <div className="font-display font-medium text-sm truncate" style={{ color: TEXT }}>
             {r.direction === "sent" ? `הועבר ל${r.pro}` : `התקבל מ${r.pro}`}
           </div>
         </div>
@@ -209,7 +199,7 @@ function Header({ title, subtitle, brand }) {
   return (
     <div className={brand ? "px-5 pt-5 pb-4 text-center" : "px-5 pt-6 pb-4"}>
       <div
-        className="font-display font-black"
+        className="font-display font-semibold"
         style={
           brand
             ? { color: GOLD, fontSize: 40, letterSpacing: "1px", textShadow: "0 2px 16px rgba(211,160,84,0.3)" }
@@ -225,25 +215,19 @@ function Header({ title, subtitle, brand }) {
 
 function HomeScreen({ referrals, onOpen }) {
   const [filter, setFilter] = useState("all");
+  const [tradeFilter, setTradeFilter] = useState("all");
   const pendingList = referrals.filter((r) => r.status !== "completed");
   const earnedList = referrals.filter((r) => r.direction === "sent" && r.status === "completed");
   const earned = earnedList.reduce((a, r) => a + r.commission, 0);
 
-  const visible = filter === "open" ? pendingList : filter === "earned" ? earnedList : referrals;
+  const baseList = filter === "open" ? pendingList : filter === "earned" ? earnedList : referrals;
+  const visible = tradeFilter === "all" ? baseList : baseList.filter((r) => r.trade === tradeFilter);
   const toggle = (key) => setFilter((f) => (f === key ? "all" : key));
 
   const listTitle = filter === "open" ? "פעילות פתוחה" : filter === "earned" ? "הרוויחו החודש" : "הפניות אחרונות";
 
   return (
     <div className="pb-4">
-      <div className="px-5 pt-3 flex items-center gap-1.5 flex-wrap justify-end">
-        {["בלי דמי מנוי", "עמלת פלטפורמה בלבד", "משלמים רק כשהעבודה נסגרת"].map((t) => (
-          <div key={t} style={{ background: SURFACE_2, border: `1px solid ${LINE}` }} className="flex items-center gap-1 px-1.5 py-1 rounded">
-            <Lock size={9} color={SIGNAL} />
-            <span className="text-[9px] font-bold" style={{ color: STEEL }}>{t}</span>
-          </div>
-        ))}
-      </div>
       <Header title="הלוח שלך" subtitle="כל ההפניות שלך, במקום אחד" />
       <div className="px-5 grid grid-cols-2 gap-2 mb-5">
         <button
@@ -252,7 +236,7 @@ function HomeScreen({ referrals, onOpen }) {
           className="rounded-md py-1.5 px-2 text-right"
         >
           <div className="text-[8px] mb-0.5" style={{ color: STEEL }}>פעילות פתוחה</div>
-          <div className="font-display font-black text-sm" style={{ color: TEXT }}>{pendingList.length}</div>
+          <div className="font-display font-semibold text-sm" style={{ color: TEXT }}>{pendingList.length}</div>
         </button>
         <button
           onClick={() => toggle("earned")}
@@ -260,11 +244,28 @@ function HomeScreen({ referrals, onOpen }) {
           className="rounded-md py-1.5 px-2 text-right"
         >
           <div className="text-[8px] mb-0.5" style={{ color: STEEL }}>הרווחת החודש</div>
-          <div className="font-display font-black text-sm font-mono" style={{ color: MONEY_GREEN }}>₪{earned}</div>
+          <div className="font-display font-semibold text-sm font-mono" style={{ color: MONEY_GREEN }}>₪{earned}</div>
         </button>
       </div>
+      <div className="px-5 mb-3 flex gap-2 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
+        <button
+          onClick={() => setTradeFilter("all")}
+          className="font-display font-medium text-xs px-3 py-1.5 rounded-full flex-shrink-0"
+          style={{ background: tradeFilter === "all" ? SIGNAL : SURFACE, color: tradeFilter === "all" ? "#161614" : TEXT, border: `1px solid ${tradeFilter === "all" ? SIGNAL : LINE}` }}
+        >הכל</button>
+        {TRADES.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setTradeFilter((f) => f === t.id ? "all" : t.id)}
+            className="font-display font-medium text-xs px-3 py-1.5 rounded-full flex-shrink-0 flex items-center gap-1"
+            style={{ background: tradeFilter === t.id ? SIGNAL : SURFACE, color: tradeFilter === t.id ? "#161614" : TEXT, border: `1px solid ${tradeFilter === t.id ? SIGNAL : LINE}` }}
+          >
+            <t.icon size={11} /> {t.label}
+          </button>
+        ))}
+      </div>
       <div className="px-5 mb-2 flex items-center justify-between">
-        <div className="font-display font-extrabold text-sm" style={{ color: TEXT }}>{listTitle}</div>
+        <div className="font-display font-medium text-sm" style={{ color: TEXT }}>{listTitle}</div>
         {filter === "all" ? (
           <div className="text-xs" style={{ color: STEEL }}>{referrals.length} סה״כ</div>
         ) : (
@@ -273,7 +274,10 @@ function HomeScreen({ referrals, onOpen }) {
       </div>
       <div className="px-5">
         {visible.length === 0 && (
-          <div className="text-sm text-center py-8" style={{ color: STEEL }}>אין הפניות להצגה כאן</div>
+          <div className="text-center py-12">
+            <div className="text-sm font-medium mb-1.5" style={{ color: TEXT }}>אין לך עדיין הפניות</div>
+            <div className="text-xs" style={{ color: STEEL, lineHeight: 1.6 }}>ברגע שתקבל או תעביר הפניה,{"\n"}היא תופיע כאן</div>
+          </div>
         )}
         {visible.map((r) => (
           <ReferralCard key={r.id} r={r} onOpen={onOpen} />
@@ -297,7 +301,7 @@ function PoolProfileSheet({ pro, onClose, onAdd }) {
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5">
-              <div className="font-display font-black text-lg" style={{ color: TEXT }}>{pro.name}</div>
+              <div className="font-display font-semibold text-lg" style={{ color: TEXT }}>{pro.name}</div>
               <ShieldCheck size={15} color={MOSS} />
             </div>
             <div className="text-xs" style={{ color: STEEL }}>{meta.label} · {pro.area}</div>
@@ -306,11 +310,11 @@ function PoolProfileSheet({ pro, onClose, onAdd }) {
 
         <div className="grid grid-cols-3 gap-2 mb-4">
           <div style={{ background: SURFACE, border: `1px solid ${LINE}` }} className="rounded-md p-2.5 text-center">
-            <div className="font-mono font-black text-base" style={{ color: GOLD }}>{pro.rating}</div>
+            <div className="font-mono font-semibold text-base" style={{ color: GOLD }}>{pro.rating}</div>
             <div className="text-[9px]" style={{ color: STEEL }}>דירוג</div>
           </div>
           <div style={{ background: SURFACE, border: `1px solid ${LINE}` }} className="rounded-md p-2.5 text-center">
-            <div className="font-mono font-black text-base" style={{ color: TEXT }}>{pro.experience}</div>
+            <div className="font-mono font-semibold text-base" style={{ color: TEXT }}>{pro.experience}</div>
             <div className="text-[9px]" style={{ color: STEEL }}>שנות ותק</div>
           </div>
           <div style={{ background: SURFACE, border: `1px solid ${LINE}` }} className="rounded-md p-2.5 text-center">
@@ -324,7 +328,7 @@ function PoolProfileSheet({ pro, onClose, onAdd }) {
           <span className="text-xs font-bold" style={{ color: TEXT }}>{pro.availability}</span>
         </div>
 
-        <div className="font-display font-extrabold text-sm mb-2" style={{ color: TEXT }}>מחירון לעבודות נפוצות</div>
+        <div className="font-display font-medium text-sm mb-2" style={{ color: TEXT }}>מחירון לעבודות נפוצות</div>
         <div className="space-y-2 mb-6">
           {pro.priceList.map((s) => (
             <div key={s.service} style={{ background: SURFACE, border: `1px solid ${LINE}` }} className="rounded-md p-3 flex items-center justify-between">
@@ -335,11 +339,11 @@ function PoolProfileSheet({ pro, onClose, onAdd }) {
         </div>
 
         <div className="flex gap-2">
-          <button onClick={onClose} style={{ border: `1px solid ${LINE}`, color: TEXT }} className="flex-1 rounded-md py-3.5 font-display font-extrabold text-sm">סגור</button>
+          <button onClick={onClose} style={{ border: `1px solid ${LINE}`, color: TEXT }} className="flex-1 rounded-md py-3.5 font-display font-medium text-sm">סגור</button>
           <button
             onClick={() => { onAdd(pro); onClose(); }}
             style={{ background: GOLD, color: "#161614" }}
-            className="flex-1 rounded-md py-3.5 font-display font-extrabold text-sm"
+            className="flex-1 rounded-md py-3.5 font-display font-medium text-sm"
           >
             הוסף לרשת שלי
           </button>
@@ -400,6 +404,12 @@ function NetworkScreen({ network, pool, onAdd }) {
             ))}
           </div>
           <div className="px-5 space-y-3">
+            {filtered.length === 0 && (
+              <div className="text-center py-12">
+                <div className="text-sm font-medium mb-1.5" style={{ color: TEXT }}>עדיין אין בעלי מקצוע ברשת</div>
+                <div className="text-xs" style={{ color: STEEL, lineHeight: 1.6 }}>הזמן קולגה שאתה סומך עליו{"\n"}כדי להתחיל</div>
+              </div>
+            )}
             {filtered.map((p) => {
               const meta = tradeMeta(p.trade);
               const Icon = meta.icon;
@@ -412,7 +422,7 @@ function NetworkScreen({ network, pool, onAdd }) {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <div className="font-display font-extrabold text-sm" style={{ color: TEXT }}>{p.name}</div>
+                        <div className="font-display font-medium text-sm" style={{ color: TEXT }}>{p.name}</div>
                         {p.verified && <ShieldCheck size={14} color={MOSS} />}
                         {p.underReview && !flagged && <AlertTriangle size={13} color={STEEL} />}
                       </div>
@@ -491,7 +501,7 @@ function NetworkScreen({ network, pool, onAdd }) {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5">
-                        <div className="font-display font-extrabold text-sm" style={{ color: TEXT }}>{p.name}</div>
+                        <div className="font-display font-medium text-sm" style={{ color: TEXT }}>{p.name}</div>
                         <ShieldCheck size={13} color={MOSS} />
                       </div>
                       <div className="text-xs" style={{ color: STEEL }}>{meta.label} · {p.area} · {p.experience} שנות ותק</div>
@@ -540,7 +550,7 @@ function NewReferralScreen({ network, onCreate }) {
 
       {step === 1 && (
         <div className="px-5">
-          <div className="font-display font-extrabold text-sm mb-3" style={{ color: TEXT }}>איזה תחום?</div>
+          <div className="font-display font-medium text-sm mb-3" style={{ color: TEXT }}>איזה תחום?</div>
           <div className="grid grid-cols-2 gap-3 mb-6">
             {TRADES.map((t) => (
               <button
@@ -554,7 +564,7 @@ function NewReferralScreen({ network, onCreate }) {
               </button>
             ))}
           </div>
-          <div className="font-display font-extrabold text-sm mb-3" style={{ color: TEXT }}>למי מהרשת שלך?</div>
+          <div className="font-display font-medium text-sm mb-3" style={{ color: TEXT }}>למי מהרשת שלך?</div>
           <div className="space-y-2 mb-6">
             {candidates.length === 0 && (
               <div className="text-xs py-4 text-center" style={{ color: STEEL }}>אין אנשי קשר בתחום הזה עדיין</div>
@@ -584,7 +594,7 @@ function NewReferralScreen({ network, onCreate }) {
             disabled={!trade || !proId}
             onClick={() => setStep(2)}
             style={{ background: !trade || !proId ? LINE : SIGNAL, color: !trade || !proId ? STEEL : "#161614" }}
-            className="w-full rounded-md py-3.5 font-display font-extrabold text-sm flex items-center justify-center gap-2"
+            className="w-full rounded-md py-3.5 font-display font-medium text-sm flex items-center justify-center gap-2"
           >
             המשך <ChevronLeft size={16} />
           </button>
@@ -593,7 +603,7 @@ function NewReferralScreen({ network, onCreate }) {
 
       {step === 2 && (
         <div className="px-5">
-          <div className="font-display font-extrabold text-sm mb-3" style={{ color: TEXT }}>פרטי העבודה</div>
+          <div className="font-display font-medium text-sm mb-3" style={{ color: TEXT }}>פרטי העבודה</div>
           <label className="text-xs font-bold mb-1 block" style={{ color: STEEL }}>שם הלקוח</label>
           <input value={client} onChange={(e) => setClient(e.target.value)} placeholder="לדוגמה: משפחת אדרי"
             style={{ border: `1px solid ${LINE}`, background: SURFACE, color: TEXT }} className="w-full rounded-md p-3 text-sm mb-4 outline-none" />
@@ -604,12 +614,12 @@ function NewReferralScreen({ network, onCreate }) {
           <textarea value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="תיאור קצר של העבודה" rows={3}
             style={{ border: `1px solid ${LINE}`, background: SURFACE, color: TEXT }} className="w-full rounded-md p-3 text-sm mb-6 outline-none resize-none" />
           <div className="flex gap-2">
-            <button onClick={() => setStep(1)} style={{ border: `1px solid ${LINE}`, color: TEXT }} className="flex-1 rounded-md py-3.5 font-display font-extrabold text-sm">חזרה</button>
+            <button onClick={() => setStep(1)} style={{ border: `1px solid ${LINE}`, color: TEXT }} className="flex-1 rounded-md py-3.5 font-display font-medium text-sm">חזרה</button>
             <button
               disabled={!client || !area || !desc}
               onClick={() => setStep(3)}
               style={{ background: !client || !area || !desc ? LINE : SIGNAL, color: !client || !area || !desc ? STEEL : "#161614" }}
-              className="flex-1 rounded-md py-3.5 font-display font-extrabold text-sm"
+              className="flex-1 rounded-md py-3.5 font-display font-medium text-sm"
             >
               המשך
             </button>
@@ -619,9 +629,9 @@ function NewReferralScreen({ network, onCreate }) {
 
       {step === 3 && (
         <div className="px-5">
-          <div className="font-display font-extrabold text-sm mb-3" style={{ color: TEXT }}>עמלת הפניה</div>
+          <div className="font-display font-medium text-sm mb-3" style={{ color: TEXT }}>עמלת הפניה</div>
           <div style={{ background: SURFACE, border: `1px solid ${LINE}` }} className="rounded-md p-5 mb-6 text-center">
-            <div className="font-mono font-black text-4xl mb-3" style={{ color: GOLD }}>₪{commission}</div>
+            <div className="font-mono font-semibold text-4xl mb-3" style={{ color: GOLD }}>₪{commission}</div>
             <input type="range" min="20" max="150" step="10" value={commission} onChange={(e) => setCommission(+e.target.value)} className="w-full" style={{ accentColor: GOLD }} />
             <div className="flex justify-between text-[11px] mt-1" style={{ color: STEEL }}>
               <span>₪20</span><span>₪150</span>
@@ -644,7 +654,7 @@ function NewReferralScreen({ network, onCreate }) {
             </div>
             <div style={{ borderTop: `1px dashed ${LINE}` }} className="pt-2 flex items-center justify-between">
               <span className="text-sm font-bold" style={{ color: TEXT }}>תקבל בפועל</span>
-              <span className="font-mono font-black text-lg" style={{ color: MOSS }}>₪{commission - Math.round(commission * PLATFORM_FEE_RATE)}</span>
+              <span className="font-mono font-semibold text-lg" style={{ color: MOSS }}>₪{commission - Math.round(commission * PLATFORM_FEE_RATE)}</span>
             </div>
             <div className="flex items-center gap-1.5 mt-3">
               <Lock size={11} color={STEEL} />
@@ -652,14 +662,14 @@ function NewReferralScreen({ network, onCreate }) {
             </div>
           </div>
           <div className="flex gap-2">
-            <button onClick={() => setStep(2)} style={{ border: `1px solid ${LINE}`, color: TEXT }} className="flex-1 rounded-md py-3.5 font-display font-extrabold text-sm">חזרה</button>
+            <button onClick={() => setStep(2)} style={{ border: `1px solid ${LINE}`, color: TEXT }} className="flex-1 rounded-md py-3.5 font-display font-medium text-sm">חזרה</button>
             <button
               onClick={() => {
                 onCreate({ trade, pro: chosenPro?.name, client, area, desc, commission });
                 reset();
               }}
               style={{ background: MOSS }}
-              className="flex-1 rounded-md py-3.5 font-display font-extrabold text-white text-sm"
+              className="flex-1 rounded-md py-3.5 font-display font-medium text-white text-sm"
             >
               שלח הפניה
             </button>
@@ -683,7 +693,7 @@ function ProfileScreen({ referrals, profile, onEdit }) {
             <img src={LOGO_SRC} alt="" className="w-full h-full" style={{ objectFit: "cover", objectPosition: "50% 45%" }} />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="font-display font-black text-lg" style={{ color: TEXT }}>{profile.name}</div>
+            <div className="font-display font-semibold text-lg" style={{ color: TEXT }}>{profile.name}</div>
             <div className="text-sm" style={{ color: STEEL }}>{meta.label} · {profile.area}</div>
           </div>
           <button onClick={onEdit} style={{ background: SURFACE, border: `1px solid ${LINE}` }} className="w-9 h-9 rounded-md flex items-center justify-center flex-shrink-0">
@@ -693,20 +703,20 @@ function ProfileScreen({ referrals, profile, onEdit }) {
 
         <div className="grid grid-cols-3 gap-3 mb-6">
           <div style={{ background: SURFACE, border: `1px solid ${LINE}` }} className="rounded-md p-3 text-center">
-            <div className="font-mono font-black text-xl" style={{ color: TEXT }}>{referrals.length}</div>
+            <div className="font-mono font-semibold text-xl" style={{ color: TEXT }}>{referrals.length}</div>
             <div className="text-[10px]" style={{ color: STEEL }}>הפניות סה״כ</div>
           </div>
           <div style={{ background: SURFACE, border: `1px solid ${LINE}` }} className="rounded-md p-3 text-center">
-            <div className="font-mono font-black text-xl" style={{ color: MOSS }}>₪{totalEarned}</div>
+            <div className="font-mono font-semibold text-xl" style={{ color: MOSS }}>₪{totalEarned}</div>
             <div className="text-[10px]" style={{ color: STEEL }}>הרווחת</div>
           </div>
           <div style={{ background: SURFACE, border: `1px solid ${LINE}` }} className="rounded-md p-3 text-center">
-            <div className="font-mono font-black text-xl" style={{ color: TEXT }}>4.9</div>
+            <div className="font-mono font-semibold text-xl" style={{ color: TEXT }}>4.9</div>
             <div className="text-[10px]" style={{ color: STEEL }}>דירוג מהרשת</div>
           </div>
         </div>
 
-        <div className="font-display font-extrabold text-sm mb-3 flex items-center gap-2" style={{ color: TEXT }}>
+        <div className="font-display font-medium text-sm mb-3 flex items-center gap-2" style={{ color: TEXT }}>
           <TrendingUp size={16} color={SIGNAL} /> איך זה עובד
         </div>
         <div className="space-y-3">
@@ -730,6 +740,21 @@ function ProfileScreen({ referrals, profile, onEdit }) {
             כל אנשי המקצוע ברשת עוברים אימות רישיון וביטוח לפני שהם יכולים לשלוח או לקבל הפניות.
           </div>
         </div>
+
+        {/* Footer */}
+        <div className="mt-8 pt-5" style={{ borderTop: `1px solid ${LINE}` }}>
+          <div className="text-[10px] leading-relaxed mb-4" style={{ color: STEEL }}>
+            פאסיט הינה פלטפורמה לחיבור בין בעלי מקצוע בלבד, ואינה צד לעסקה, לתשלום או להתחייבות כלשהי בין המשתמשים. האחריות המלאה לאיכות העבודה, עמידה בזמנים ותשלום מוטלת על הצדדים המעורבים בלבד. השימוש באפליקציה כפוף לתנאי השימוש.
+          </div>
+          <div className="text-[10px] mb-4" style={{ color: STEEL }}>© 2026 פאסיט. כל הזכויות שמורות.</div>
+          <a
+            href="mailto:stav2951@gmail.com"
+            className="w-full rounded-md py-2.5 font-display font-medium text-xs flex items-center justify-center gap-2"
+            style={{ border: `1px solid ${LINE}`, color: STEEL }}
+          >
+            יצירת קשר
+          </a>
+        </div>
       </div>
     </div>
   );
@@ -746,7 +771,7 @@ function EditProfileSheet({ profile, onClose, onSave }) {
     <div className="fixed inset-0 z-50 flex items-end justify-center" style={{ background: "rgba(5,3,2,0.78)" }} onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()} style={{ background: SURFACE_2, maxWidth: 420, borderTop: `1px solid ${LINE}`, maxHeight: "88vh", overflowY: "auto" }} className="w-full rounded-t-2xl p-5 pb-8">
         <div className="w-10 h-1.5 rounded-full mx-auto mb-4" style={{ background: LINE }} />
-        <div className="font-display font-black text-lg mb-5" style={{ color: TEXT }}>עריכת פרופיל</div>
+        <div className="font-display font-semibold text-lg mb-5" style={{ color: TEXT }}>עריכת פרופיל</div>
 
         <label className="text-xs font-bold mb-1 block" style={{ color: STEEL }}>שם מלא</label>
         <input value={name} onChange={(e) => setName(e.target.value)}
@@ -776,12 +801,12 @@ function EditProfileSheet({ profile, onClose, onSave }) {
           style={{ border: `1px solid ${LINE}`, background: SURFACE, color: TEXT }} className="w-full rounded-md p-3 text-sm mb-6 outline-none" dir="ltr" />
 
         <div className="flex gap-2">
-          <button onClick={onClose} style={{ border: `1px solid ${LINE}`, color: TEXT }} className="flex-1 rounded-md py-3.5 font-display font-extrabold text-sm">ביטול</button>
+          <button onClick={onClose} style={{ border: `1px solid ${LINE}`, color: TEXT }} className="flex-1 rounded-md py-3.5 font-display font-medium text-sm">ביטול</button>
           <button
             disabled={!valid}
             onClick={() => onSave({ name: name.trim(), trade, area: area.trim(), phone: phone.trim() })}
             style={{ background: valid ? GOLD : LINE, color: valid ? "#161614" : STEEL }}
-            className="flex-1 rounded-md py-3.5 font-display font-extrabold text-sm"
+            className="flex-1 rounded-md py-3.5 font-display font-medium text-sm"
           >
             שמור שינויים
           </button>
@@ -796,7 +821,7 @@ function CloseJobSheet({ referral, pro, onClose, onSubmit }) {
     <div className="fixed inset-0 z-50 flex items-end justify-center" style={{ background: "rgba(5,3,2,0.78)" }} onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()} style={{ background: SURFACE_2, maxWidth: 420, borderTop: `1px solid ${LINE}`, maxHeight: "88vh", overflowY: "auto" }} className="w-full rounded-t-2xl p-5 pb-8">
         <div className="w-10 h-1.5 rounded-full mx-auto mb-4" style={{ background: LINE }} />
-        <div className="font-display font-black text-lg mb-1" style={{ color: TEXT }}>סיימת את העבודה?</div>
+        <div className="font-display font-semibold text-lg mb-1" style={{ color: TEXT }}>סיימת את העבודה?</div>
         <div className="text-xs mb-5" style={{ color: STEEL, lineHeight: 1.6 }}>
           נשלח ללקוח אישור קצר ב-SMS. ברגע שהוא מאשר שהכל היה תקין, העמלה משתחררת אוטומטית — אין צורך לרשום סכומים.
         </div>
@@ -811,7 +836,7 @@ function CloseJobSheet({ referral, pro, onClose, onSubmit }) {
         <button
           onClick={() => onSubmit({})}
           style={{ background: GOLD, color: "#161614" }}
-          className="w-full rounded-md py-3.5 font-display font-extrabold text-sm"
+          className="w-full rounded-md py-3.5 font-display font-medium text-sm"
         >
           כן, שלח אישור ללקוח
         </button>
@@ -833,7 +858,7 @@ function RateSheet({ referral, onClose, onSubmit }) {
     <div className="fixed inset-0 z-50 flex items-end justify-center" style={{ background: "rgba(5,3,2,0.78)" }} onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()} style={{ background: SURFACE_2, maxWidth: 420, borderTop: `1px solid ${LINE}`, maxHeight: "88vh", overflowY: "auto" }} className="w-full rounded-t-2xl p-5 pb-8">
         <div className="w-10 h-1.5 rounded-full mx-auto mb-4" style={{ background: LINE }} />
-        <div className="font-display font-black text-lg mb-1" style={{ color: TEXT }}>תפנה אליו שוב?</div>
+        <div className="font-display font-semibold text-lg mb-1" style={{ color: TEXT }}>תפנה אליו שוב?</div>
         <div className="text-xs mb-5" style={{ color: STEEL, lineHeight: 1.6 }}>
           שאלה אחת, מתוך התחושה שלך על {referral.pro} — לא צריך לבדוק או לתשאל אף אחד.
         </div>
@@ -842,14 +867,14 @@ function RateSheet({ referral, onClose, onSubmit }) {
           <button
             onClick={() => { setChoice(true); setReason(null); }}
             style={{ background: choice === true ? MOSS : SURFACE, border: `1px solid ${choice === true ? MOSS : LINE}` }}
-            className="flex-1 rounded-md py-4 font-display font-extrabold text-sm"
+            className="flex-1 rounded-md py-4 font-display font-medium text-sm"
           >
             <span style={{ color: choice === true ? "#fff" : TEXT }}>כן, בהחלט</span>
           </button>
           <button
             onClick={() => setChoice(false)}
             style={{ background: choice === false ? MONEY_RED : SURFACE, border: `1px solid ${choice === false ? MONEY_RED : LINE}` }}
-            className="flex-1 rounded-md py-4 font-display font-extrabold text-sm"
+            className="flex-1 rounded-md py-4 font-display font-medium text-sm"
           >
             <span style={{ color: choice === false ? "#fff" : TEXT }}>לא הפעם</span>
           </button>
@@ -884,7 +909,7 @@ function RateSheet({ referral, onClose, onSubmit }) {
           disabled={!valid}
           onClick={() => onSubmit({ referAgain: choice, reason })}
           style={{ background: valid ? GOLD : LINE, color: valid ? "#161614" : STEEL }}
-          className="w-full rounded-md py-3.5 font-display font-extrabold text-sm"
+          className="w-full rounded-md py-3.5 font-display font-medium text-sm"
         >
           שמור
         </button>
@@ -902,7 +927,7 @@ function DetailSheet({ r, onClose, onRate, onCloseJob, onClientResponse }) {
       <div onClick={(e) => e.stopPropagation()} style={{ background: SURFACE_2, maxWidth: 420, borderTop: `1px solid ${LINE}` }} className="w-full rounded-t-2xl p-5 pb-8">
         <div className="w-10 h-1.5 rounded-full mx-auto mb-4" style={{ background: LINE }} />
         <div className="flex items-center justify-between mb-4">
-          <div className="font-display font-black text-lg" style={{ color: TEXT }}>{r.id}</div>
+          <div className="font-display font-semibold text-lg" style={{ color: TEXT }}>{r.id}</div>
           <Stamp status={r.status} />
         </div>
         <div style={{ background: SURFACE, border: `1px solid ${LINE}` }} className="rounded-md p-4 mb-3">
@@ -919,14 +944,14 @@ function DetailSheet({ r, onClose, onRate, onCloseJob, onClientResponse }) {
         </div>
         <div className="flex items-center justify-between px-1 mb-5">
           <span className="text-sm" style={{ color: STEEL }}>עמלה</span>
-          <span className="font-mono font-black text-xl" style={{ color: GOLD }}>₪{r.commission}</span>
+          <span className="font-mono font-semibold text-xl" style={{ color: GOLD }}>₪{r.commission}</span>
         </div>
 
         {r.direction === "received" && (r.status === "pending" || r.status === "accepted") && (
           <button
             onClick={() => onCloseJob(r)}
             style={{ background: GOLD, color: "#161614" }}
-            className="w-full rounded-md py-3.5 font-display font-extrabold text-sm mb-3"
+            className="w-full rounded-md py-3.5 font-display font-medium text-sm mb-3"
           >
             סיימתי את העבודה
           </button>
@@ -944,13 +969,13 @@ function DetailSheet({ r, onClose, onRate, onCloseJob, onClientResponse }) {
             <button
               onClick={() => onRate(r)}
               style={{ background: GOLD, color: "#161614" }}
-              className="w-full rounded-md py-3.5 font-display font-extrabold text-sm mb-3"
+              className="w-full rounded-md py-3.5 font-display font-medium text-sm mb-3"
             >
               דרג את העבודה (אופציונלי)
             </button>
           )
         )}
-        <button onClick={onClose} style={{ background: SURFACE, border: `1px solid ${LINE}`, color: TEXT }} className="w-full rounded-md py-3.5 font-display font-extrabold text-sm">סגור</button>
+        <button onClick={onClose} style={{ background: SURFACE, border: `1px solid ${LINE}`, color: TEXT }} className="w-full rounded-md py-3.5 font-display font-medium text-sm">סגור</button>
       </div>
     </div>
   );
@@ -1055,7 +1080,7 @@ function TourSheet({ onClose, onSelect }) {
     <div className="fixed inset-0 z-50 flex items-end justify-center" style={{ background: "rgba(5,3,2,0.78)" }} onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()} style={{ background: SURFACE_2, maxWidth: 420, borderTop: `1px solid ${LINE}`, maxHeight: "85vh", overflowY: "auto" }} className="w-full rounded-t-2xl p-5 pb-8">
         <div className="w-10 h-1.5 rounded-full mx-auto mb-4" style={{ background: LINE }} />
-        <div className="font-display font-black text-lg mb-1" style={{ color: TEXT }}>סיור באפליקציה</div>
+        <div className="font-display font-semibold text-lg mb-1" style={{ color: TEXT }}>סיור באפליקציה</div>
         <div className="text-xs mb-5" style={{ color: STEEL }}>לוחצים על כל פריט כדי לראות אותו ישירות באפליקציה</div>
         <div className="space-y-2">
           {TOUR_ITEMS.map((item) => (
@@ -1084,7 +1109,7 @@ function SplashScreen() {
       <div style={{ width: 120, height: 120, borderRadius: "50%", border: `2px solid ${GOLD}`, overflow: "hidden" }} className="pasit-blink mb-5">
         <img src={LOGO_SRC} alt="פאסיט" className="w-full h-full" style={{ objectFit: "cover", objectPosition: "50% 42%" }} />
       </div>
-      <div className="font-display font-black pasit-blink" style={{ color: GOLD, fontSize: 26, letterSpacing: "1px" }}>
+      <div className="font-display font-semibold pasit-blink" style={{ color: GOLD, fontSize: 26, letterSpacing: "1px" }}>
         פָּאסִיט
       </div>
       <div className="font-serif mt-3" style={{ color: STEEL, fontSize: 17, letterSpacing: "0.5px" }}>
@@ -1096,18 +1121,18 @@ function SplashScreen() {
 
 const ONBOARDING_SLIDES = [
   {
-    title: "עבודה שלא מהתחום שלך?",
-    text: "קיבלת קריאה מלקוח שלא בתחום שלך? במקום לוותר עליה, תעביר אותה לאיש מקצוע שאתה סומך עליו ברשת שלך.",
+    title: "ברוכים הבאים לפאסיט",
+    text: "הפלטפורמה הראשונה בישראל שמחברת בין בעלי מקצוע מכל התחומים. קיבלתם עבודה שלא בתחום שלכם, או פשוט אין לכם זמן פנוי אליה? במקום לוותר עליה, תעבירו אותה לבעל מקצוע ברשת שאתם סומכים עליו — וכשיגיע תורכם, העבודות יחזרו אליכם.",
     icon: PlusCircle,
   },
   {
     title: "אתה קובע את העמלה",
-    text: "אתה בוחר כמה לבקש על ההפניה. פאסיט גובה עמלת פלטפורמה קטנה, ורק אחרי שהעבודה הושלמה בפועל.",
+    text: "אתה בוחר כמה לבקש על ההפניה. כשהעבודה מושלמת — העמלה מגיעה אליך אוטומטית, בלי חשבוניות ובלי מרדפים.",
     icon: Wallet,
   },
   {
-    title: "רשת סגורה, לא שוק פתוח",
-    text: "אתה מפנה רק לאנשים שהוספת בעצמך לרשת שלך. דירוגים ודיווחים שומרים על האיכות של כל מי שברשת.",
+    title: "רשת סגורה של אנשי מקצוע מהימנים",
+    text: "לא שוק פתוח לכל דורש. אתה מפנה רק לאנשים שהוספת בעצמך לרשת שלך. דירוגים ודיווחים שומרים על האיכות.",
     icon: ShieldCheck,
   },
 ];
@@ -1124,7 +1149,7 @@ function OnboardingScreen({ onDone }) {
         <div style={{ background: SURFACE_2, border: `1px solid ${LINE}` }} className="w-20 h-20 rounded-full flex items-center justify-center mb-6">
           <Icon size={32} color={GOLD} />
         </div>
-        <div className="font-display font-black text-2xl mb-3" style={{ color: TEXT }}>{slide.title}</div>
+        <div className="font-display font-semibold text-2xl mb-3" style={{ color: TEXT }}>{slide.title}</div>
         <div className="text-sm" style={{ color: STEEL, lineHeight: 1.7 }}>{slide.text}</div>
       </div>
       <div className="px-8 pb-8">
@@ -1136,7 +1161,7 @@ function OnboardingScreen({ onDone }) {
         <button
           onClick={() => (isLast ? onDone() : setStep((s) => s + 1))}
           style={{ background: GOLD, color: "#161614" }}
-          className="w-full rounded-md py-3.5 font-display font-extrabold text-sm mb-2"
+          className="w-full rounded-md py-3.5 font-display font-medium text-sm mb-2"
         >
           {isLast ? "בואו נתחיל" : "המשך"}
         </button>
@@ -1307,7 +1332,7 @@ export default function App() {
                 </button>
               </div>
               <span
-                className="font-display font-black absolute left-1/2"
+                className="font-display font-semibold absolute left-1/2"
                 style={{ color: GOLD, fontSize: 18, letterSpacing: "1px", textShadow: "0 2px 16px rgba(211,160,84,0.3)", transform: "translateX(-50%)" }}
               >
                 פָּאסִיט
@@ -1326,10 +1351,11 @@ export default function App() {
                 const active = screen === t.id;
                 if (t.primary) {
                   return (
-                    <button key={t.id} onClick={() => setScreen(t.id)} className="flex flex-col items-center -mt-6">
+                    <button key={t.id} onClick={() => setScreen(t.id)} className="flex flex-col items-center gap-0.5 -mt-6">
                       <div style={{ background: SIGNAL, border: `3px solid ${SURFACE}` }} className="w-14 h-14 rounded-full flex items-center justify-center shadow-lg">
                         <t.icon size={24} color="#161614" />
                       </div>
+                      <span className="text-[10px] font-medium" style={{ color: screen === t.id ? SIGNAL : STEEL }}>הפניה חדשה</span>
                     </button>
                   );
                 }
